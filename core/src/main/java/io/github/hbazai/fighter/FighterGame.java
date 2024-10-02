@@ -1,36 +1,45 @@
 package io.github.hbazai.fighter;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+
+import io.github.hbazai.fighter.resources.Assets;
+import io.github.hbazai.fighter.screens.GameScreen;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms.
  */
-public class FighterGame extends ApplicationAdapter {
-    private SpriteBatch batch;
-    private Texture image;
+public class FighterGame extends Game {
+    public SpriteBatch batch;
+    public Assets assets;
+
+    // Screen
+    public GameScreen gameScreen;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        image = new Texture("libgdx.png");
+        assets = new Assets();
+
+        // load all assets
+        assets.load();
+        assets.manager.finishLoading(); // Later we wiil create a loading screen here
+
+        // initialize the game screen and switch it
+        gameScreen = new GameScreen(this);
+        setScreen(gameScreen);
     }
 
     @Override
     public void render() {
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
-        batch.begin();
-        batch.draw(image, Gdx.graphics.getWidth() / 2f - image.getWidth() / 2f, Gdx.graphics.getHeight() / 2f - image.getHeight() / 2f);
-        batch.end();
+        super.render();
     }
 
     @Override
     public void dispose() {
         batch.dispose();
-        image.dispose();
+        assets.dispose();
     }
 }
