@@ -4,11 +4,13 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import io.github.hbazai.fighter.FighterGame;
 import io.github.hbazai.fighter.resources.Assets;
+import io.github.hbazai.fighter.resources.GlobalVariables;
 
 public class Fighter {
     // Number of framw rows and columns in each animation
@@ -79,6 +81,67 @@ public class Fighter {
         initializePunchAnimation(game.assets.manager);
         initializeWalkAnimation(game.assets.manager);
         initializeWinAnimation(game.assets.manager);
+    }
+
+    public void getReady(float positionX, float positionY) {
+        state = renderState = State.IDLE;
+        stateTime = renderStateTime = 0f;
+        position.set(positionX, positionY);
+        movementDirection.set(0, 0);
+        life = MAX_LIFE;
+        madeContact = false;
+    }
+
+    public void render(SpriteBatch batch) {
+        // Get the current animation frame
+        TextureRegion currentFrame;
+        switch (renderState) {
+            case BLOCK:
+                currentFrame = blockAnimation.getKeyFrame(renderStateTime, true);
+                break;
+            case HURT:
+                currentFrame = hurtAnimation.getKeyFrame(renderStateTime, false);
+                break;
+            case IDLE:
+                currentFrame = idleAnimation.getKeyFrame(renderStateTime, true);
+                break;
+            case KICK:
+                currentFrame = kickAnimation.getKeyFrame(renderStateTime, false);
+                break;
+            case LOSE:
+                currentFrame = loseAnimation.getKeyFrame(renderStateTime, false);
+                break;
+            case PUNCH:
+                currentFrame = punchAnimation.getKeyFrame(renderStateTime, false);
+                break;
+            case WALK:
+                currentFrame = walkAnimation.getKeyFrame(renderStateTime, true);
+                break;
+            default:
+                currentFrame = winAnimation.getKeyFrame(renderStateTime, true);
+        }
+
+        batch.setColor(color);
+        batch.draw(
+            currentFrame,
+            position.x,
+            position.y,
+            currentFrame.getRegionWidth()* GlobalVariables.WORLD_SCALE,
+            currentFrame.getRegionHeight()*GlobalVariables.WORLD_SCALE
+        );
+        batch.setColor(1,1,1,1);
+
+    }
+
+    public void update(float deltaTime) {
+        // increment the state time by deltaTime
+        stateTime += deltaTime;
+
+        // Only update the render state if delta time is greater than zero
+        if (deltaTime > 0) {
+            renderState = state;
+            renderStateTime = stateTime;
+        }
     }
 
     private void initializeBlockAnimation(AssetManager assetManager) {
