@@ -152,10 +152,17 @@ public class Fighter {
             renderStateTime = stateTime;
         }
 
-        if(state == State.WALK){
+        if (state == State.WALK) {
             // if the fighter is walking, move in the direction of the movement direction vector
             position.x += movementDirection.x * MOVEMENT_SPEED * deltaTime;
             position.y += movementDirection.y * MOVEMENT_SPEED * deltaTime;
+        } else if ((state == State.PUNCH && punchAnimation.isAnimationFinished(stateTime)) || (state == State.KICK && kickAnimation.isAnimationFinished(stateTime))) {
+            // if the animation has finished and the movement direction is set, start walking, otherwise, go to IDLE
+            if (movementDirection.x != 0 || movementDirection.y != 0) {
+                changeState(State.WALK);
+            } else {
+                changeState(State.IDLE);
+            }
         }
     }
 
@@ -198,27 +205,63 @@ public class Fighter {
     }
 
     public void stopMovingLeft() {
-        if(movementDirection.x == -1){
+        if (movementDirection.x == -1) {
             setMovement(0, movementDirection.y);
         }
     }
 
     public void stopMovingRight() {
-        if(movementDirection.x == 1){
+        if (movementDirection.x == 1) {
             setMovement(0, movementDirection.y);
         }
     }
 
     public void stopMovingUp() {
-        if(movementDirection.y == 1){
+        if (movementDirection.y == 1) {
             setMovement(movementDirection.x, 0);
         }
     }
 
     public void stopMovingDown() {
-        if(movementDirection.y == -1){
+        if (movementDirection.y == -1) {
             setMovement(movementDirection.x, 0);
         }
+    }
+
+    public void block() {
+        if (state == State.IDLE || state == State.WALK) {
+            changeState(State.BLOCK);
+        }
+    }
+
+    public void stopBlocking() {
+        if (state == State.BLOCK) {
+            if (movementDirection.x != 0 || movementDirection.y != 0) {
+                changeState(State.WALK);
+            } else {
+                changeState(State.IDLE);
+            }
+        }
+    }
+
+    public boolean isBlocking() {
+        return state == State.BLOCK;
+    }
+
+    public void punch() {
+        if (state == State.IDLE || state == State.WALK) {
+            changeState(State.PUNCH);
+        }
+    }
+
+    public void kick() {
+        if (state == State.IDLE || state == State.WALK) {
+            changeState(State.KICK);
+        }
+    }
+
+    public boolean isAttacking() {
+        return state == State.PUNCH || state == State.KICK;
     }
 
     private void initializeBlockAnimation(AssetManager assetManager) {
