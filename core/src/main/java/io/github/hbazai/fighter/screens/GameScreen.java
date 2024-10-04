@@ -29,7 +29,7 @@ public class GameScreen implements Screen {
         this.game = game;
 
         // Setup the viewport
-        viewport =  new ExtendViewport(
+        viewport = new ExtendViewport(
             GlobalVariables.WORLD_WIDTH,
             GlobalVariables.MIN_WORLD_HEIGHT,
             GlobalVariables.WORLD_WIDTH,
@@ -91,9 +91,18 @@ public class GameScreen implements Screen {
         game.opponent.render(game.batch);
     }
 
-    private void update(float deltaTime){
+    private void update(float deltaTime) {
         game.player.update(deltaTime);
         game.opponent.update(deltaTime);
+
+        // make sure fighters are facing each other
+        if (game.player.getPosition().x <= game.opponent.getPosition().x) {
+            game.player.faceRight();
+            game.opponent.faceLeft();
+        }else {
+            game.player.faceLeft();
+            game.opponent.faceRight();
+        }
     }
 
     @Override
