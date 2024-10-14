@@ -83,8 +83,28 @@ public class Fighter {
         initializeWinAnimation(game.assets.manager);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
     public Vector2 getPosition() {
         return position;
+    }
+
+    public float getLife() {
+        return life;
     }
 
     public void getReady(float positionX, float positionY) {
@@ -156,7 +176,11 @@ public class Fighter {
             // if the fighter is walking, move in the direction of the movement direction vector
             position.x += movementDirection.x * MOVEMENT_SPEED * deltaTime;
             position.y += movementDirection.y * MOVEMENT_SPEED * deltaTime;
-        } else if ((state == State.PUNCH && punchAnimation.isAnimationFinished(stateTime)) || (state == State.KICK && kickAnimation.isAnimationFinished(stateTime))) {
+        } else if (
+            (state == State.PUNCH && punchAnimation.isAnimationFinished(stateTime)) ||
+                (state == State.KICK && kickAnimation.isAnimationFinished(stateTime)) ||
+                (state == State.HURT && hurtAnimation.isAnimationFinished(stateTime))
+        ) {
             // if the animation has finished and the movement direction is set, start walking, otherwise, go to IDLE
             if (movementDirection.x != 0 || movementDirection.y != 0) {
                 changeState(State.WALK);
@@ -251,13 +275,69 @@ public class Fighter {
     public void punch() {
         if (state == State.IDLE || state == State.WALK) {
             changeState(State.PUNCH);
+
+            // Start attacking but still no contact
+            madeContact = false;
         }
     }
 
     public void kick() {
         if (state == State.IDLE || state == State.WALK) {
             changeState(State.KICK);
+
+            // Start attacking but still no contact
+            madeContact = false;
         }
+    }
+
+    public void madeContact() {
+        madeContact = true;
+    }
+
+    public boolean hasMadeContact() {
+        return madeContact;
+    }
+
+    public boolean isAttackActive() {
+        // The attack is only active if the fighter has not made the contact and the attack ...
+        // ... animation has not just started or is almost finish
+        if (hasMadeContact()) {
+            return false;
+        } else if (state == State.PUNCH) {
+            return stateTime > punchAnimation.getAnimationDuration() * 0.33f && stateTime < punchAnimation.getAnimationDuration() * 0.66f;
+        } else if (state == State.KICK) {
+            return stateTime > kickAnimation.getAnimationDuration() * 0.33f && stateTime < kickAnimation.getAnimationDuration() * 0.66f;
+        } else {
+            return false;
+        }
+    }
+
+    public void getHit(float damage) {
+        if (state == State.HURT || state == State.WIN || state == State.LOSE) return;
+        // Reduce the fighter's life by the full damage amount or a fraction of it if the fighter is blocking
+        life -= state == State.BLOCK ? damage * BLOCK_DAMAGE_FACTOR : damage;
+
+        if (life <= 0f) {
+            // if no life remains --> LOSE
+            lose();
+        } else if (state != State.BLOCK) {
+            // if is not blocking
+            changeState(State.HURT);
+        }
+
+    }
+
+    public void lose() {
+        changeState(State.LOSE);
+        life = 0f;
+    }
+
+    public boolean hasLost() {
+        return state == State.LOSE;
+    }
+
+    public void win() {
+        changeState(State.WIN);
     }
 
     public boolean isAttacking() {
