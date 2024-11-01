@@ -123,6 +123,8 @@ public class GameScreen implements Screen, InputProcessor {
         // Get the ring texture from assets
         backgroundTexture = game.assets.manager.get(Assets.BACKGROUND_TEXTURE);
         frontRopesTexture = game.assets.manager.get(Assets.FRONT_REPOES_TEXTURE);
+
+        backgroundTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
     @Override
