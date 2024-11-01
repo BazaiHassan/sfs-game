@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -55,7 +56,8 @@ public class GameScreen implements Screen, InputProcessor {
     private int roundWin = 0, roundLost = 0;
     private static final float MAX_ROUND_TIME = 99.99f;
     private float roundTimer = MAX_ROUND_TIME;
-
+    public static final float CRITICAL_ROUND_TIME = 10f;
+    public static final Color CRITICAL_ROUND_TIME_COLOR = Color.RED;
     // fonts
     private BitmapFont smallFont, mediumFont, largeFont;
     private static final Color DEFUALT_FONT_COLOR = Color.WHITE;
@@ -217,7 +219,7 @@ public class GameScreen implements Screen, InputProcessor {
         renderHUD();
 
         // if the round is starting, draw the start round text
-        if(roundState==RoundState.STARTING){
+        if (roundState == RoundState.STARTING) {
             renderStartRoundText();
         }
 
@@ -294,15 +296,16 @@ public class GameScreen implements Screen, InputProcessor {
         smallFont.draw(game.batch, game.opponent.getName(), viewport.getWorldWidth() - HUDMargin - healthBarBackgroundPadding - healthBarPadding, fighterNamePositionY, 0, Align.right, false);
 
         // Draw Round Timer
+        if (roundTimer < CRITICAL_ROUND_TIME) {
+            mediumFont.setColor(CRITICAL_ROUND_TIME_COLOR);
+        }
         mediumFont.draw(
             game.batch,
             String.format(Locale.getDefault(), "%02d", (int) roundTimer),
-            viewport.getWorldWidth() / 2f,
-            viewport.getWorldHeight() - HUDMargin,
-            0,
-            Align.center,
-            false
+            viewport.getWorldWidth() / 2f - mediumFont.getSpaceXadvance() * 2.3f,
+            viewport.getWorldHeight() - HUDMargin
         );
+        mediumFont.setColor(DEFUALT_FONT_COLOR);
     }
 
     private void renderFighters() {
@@ -458,6 +461,21 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        if (keycode == Input.Keys.SPACE) {
+            if (gameState == GameState.RUNNING) {
+                // If the game is running the space key has been pressed, skip any round delay
+                if (roundState == RoundState.STARTING) {
+                    roundStateTime = START_ROUND_DELAY;
+                } else if (roundState == RoundState.ENDING) {
+                    roundStateTime = END_ROUND_DELAY;
+                }
+            } else if (gameState == GameState.GAME_OVER) {
+                // if the game is over and the space key has been pressed, restart the game
+                startGame();
+            }
+        }
+
+
         if (roundState == RoundState.IN_PROGRESS) {
             // Check if the player has pressed a movement key
             if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) {
@@ -515,7 +533,20 @@ public class GameScreen implements Screen, InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
+        // Convert the screen coordinates of the touch/click into world coordinates
+        Vector3 position = new Vector3(screenX, screenY, 0);
+        viewport.getCamera().unproject(position, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
+
+        if (gameState == GameState.RUNNING) {
+            if (roundState == RoundState.STARTING) {
+                // if the round is starting and the screen has been touched, skip the start round delay
+                roundStateTime = START_ROUND_DELAY;
+            } else if (roundState == RoundState.ENDING) {
+                // if the round is ending and the screen has been touched, skip the end round delay
+                roundStateTime = END_ROUND_DELAY;
+            }
+        }
+        return true;
     }
 
     @Override
