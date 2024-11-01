@@ -473,33 +473,31 @@ public class GameScreen implements Screen, InputProcessor {
                 // if the game is over and the space key has been pressed, restart the game
                 startGame();
             }
-        }
+        } else {
+            if (roundState == RoundState.IN_PROGRESS) {
+                // Check if the player has pressed a movement key
+                if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) {
+                    game.player.moveLeft();
+                } else if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D) {
+                    game.player.moveRight();
+                }
 
-
-        if (roundState == RoundState.IN_PROGRESS) {
-            // Check if the player has pressed a movement key
-            if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) {
-                game.player.moveLeft();
-            } else if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D) {
-                game.player.moveRight();
+                if (keycode == Input.Keys.UP || keycode == Input.Keys.W) {
+                    game.player.moveUp();
+                } else if (keycode == Input.Keys.DOWN || keycode == Input.Keys.S) {
+                    game.player.moveDown();
+                }
             }
 
-            if (keycode == Input.Keys.UP || keycode == Input.Keys.W) {
-                game.player.moveUp();
-            } else if (keycode == Input.Keys.DOWN || keycode == Input.Keys.S) {
-                game.player.moveDown();
+            // check if the player has pressed block or attack key
+            if (keycode == Input.Keys.B) {
+                game.player.block();
+            } else if (keycode == Input.Keys.F) {
+                game.player.punch();
+            } else if (keycode == Input.Keys.V) {
+                game.player.kick();
             }
         }
-
-        // check if the player has pressed block or attack key
-        if (keycode == Input.Keys.B) {
-            game.player.block();
-        } else if (keycode == Input.Keys.F) {
-            game.player.punch();
-        } else if (keycode == Input.Keys.V) {
-            game.player.kick();
-        }
-
         return true;
     }
 
